@@ -48,48 +48,27 @@ app.use(session({
   store: new FileStore()
 }));
 
+// allowing new user to see index page as well as signup
+app.use('/', indexRouter);
+app.use('/users', usersRouter);
+
 // Authorization Phase
 function auth(req,res,next){
   console.log(req.session);
+  // check if user is logged in
   if(!req.session.user){
-    var authHeader = req.headers.authorization;
-
-    if(!authHeader){
-      var err = new Error("You are not logged in!");
-      res.setHeader('WWW-Authenticate','Basic');
-      err.status=401;
-      next(err);
-      return;
-    }
-    // spliting the authheader using Buffer
-    // authHeader = Basic UserName:Password
-    // therefore [1]
-    var auth = new Buffer.from(authHeader.split(' ')[1],'base64').toString().split(':');
-    var username = auth[0];
-    var password = auth[1];
-
-    if(username==='admin' && password==='password'){
-      // set up the cookie on the client side
-      req.session.user='admin';
-      // move to the next step/middleware
-      next();
-    }
-    else{
-      var err = new Error("Incorrect username passord");
-      res.setHeader('WWW-Authenticate','Basic');
-      err.status=401;
-      // call the errpr handler
-      return next(err);
-    }
+    var err = new Error("You are not authenticated!");
+    err.status=401;
+    next(err);
+    return;
   }
   else{
-    if(req.session.user === 'admin'){
+    if(req.session.user === 'authenticated'){
       next();
     }
     else{
       var err = new Error("You are not authenticated!");
-      res.setHeader('WWW-Authenticate','Basic');
-      err.status=401;
+      err.status=403;
       // call the errpr handler
       return next(err);
     }
@@ -100,9 +79,6 @@ app.use(auth);
 
 // serving public data from our server
 app.use(express.static(path.join(__dirname, 'public')));
-
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
 app.use('/dishes', dishRouter);
 app.use('/promotions', promoRouter);
 app.use('/leaders', leaderRouter);
