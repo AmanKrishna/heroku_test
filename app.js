@@ -5,6 +5,8 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var session = require('express-session');
 var FileStore = require('session-file-store')(session);
+var passport = require('passport');
+var authenticate = require('./authenticate');
 
 // Get all the routers modeules
 // They will handle the request for different routes/URLs
@@ -48,30 +50,25 @@ app.use(session({
   store: new FileStore()
 }));
 
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 // allowing new user to see index page as well as signup
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
 // Authorization Phase
-function auth(req,res,next){
-  console.log(req.session);
-  // check if user is logged in
-  if(!req.session.user){
-    var err = new Error("You are not authenticated!");
-    err.status=401;
+function auth (req, res, next) {
+  console.log(req.user);
+
+  if (!req.user) {
+    var err = new Error('You are not authenticated asdasdasd!');
+    err.status = 403;
     next(err);
-    return;
   }
-  else{
-    if(req.session.user === 'authenticated'){
-      next();
-    }
-    else{
-      var err = new Error("You are not authenticated!");
-      err.status=403;
-      // call the errpr handler
-      return next(err);
-    }
+  else {
+        next();
   }
 }
 
