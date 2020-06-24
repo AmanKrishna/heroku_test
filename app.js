@@ -10,8 +10,11 @@ var dishRouter = require('./routes/dishRouter');
 var promoRouter = require('./routes/promoRouter');
 var leaderRouter = require('./routes/leaderRouter');
 
-const mongoose = require('mongoose');
+
 const Dishes = require('./model/dishes');
+const Promotions = require('./model/promotions');
+const Leaders = require('./model/leaders');
+const mongoose = require('mongoose');
 url = "mongodb://localhost:27017/conFusion";
 const connect = mongoose.connect(url);
 

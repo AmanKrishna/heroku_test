@@ -46,7 +46,7 @@ dishRouter.route('/')
 .delete((req,res,next)=>{
     Dishes.remove({})
     .then((resp)=>{
-        console.log("Dish Created!");
+        console.log("Dishes Deleted!");
         res.statusCode=200;
         res.setHeader('Content-type','application/json');
         res.json(resp);
