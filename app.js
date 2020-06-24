@@ -7,6 +7,7 @@ var session = require('express-session');
 var FileStore = require('session-file-store')(session);
 var passport = require('passport');
 var authenticate = require('./authenticate');
+var config = require('./config');
 
 // Get all the routers modeules
 // They will handle the request for different routes/URLs
@@ -18,7 +19,7 @@ var leaderRouter = require('./routes/leaderRouter');
 
 // connect to the database server
 const mongoose = require('mongoose');
-url = "mongodb://localhost:27017/conFusion";
+url = config.mongoUrl;
 const connect = mongoose.connect(url);
 connect.then((db)=>{
   console.log("Connnected to server!");
@@ -38,41 +39,13 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-// using signed cookie
-// app.use(cookieParser('12345-67890-0987-54321'));
 
-// set session and define its parameters
-app.use(session({
-  name: 'session-id',
-  secret: '12345-67890-0987-54321',
-  saveUninitialized: false,
-  resave: false,
-  store: new FileStore()
-}));
-
-
+// use passport
 app.use(passport.initialize());
-app.use(passport.session());
 
 // allowing new user to see index page as well as signup
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-
-// Authorization Phase
-function auth (req, res, next) {
-  console.log(req.user);
-
-  if (!req.user) {
-    var err = new Error('You are not authenticated asdasdasd!');
-    err.status = 403;
-    next(err);
-  }
-  else {
-        next();
-  }
-}
-
-app.use(auth);
 
 // serving public data from our server
 app.use(express.static(path.join(__dirname, 'public')));

@@ -3,6 +3,7 @@ var User = require('../model/user');
 var express = require('express');
 var router = express.Router();
 var passport = require('passport');
+var authenticate = require('../authenticate')
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
@@ -34,10 +35,17 @@ router.post('/signup',function(req,res,next){
 // when a login req comse the passport.authenticate
 // will automatically send back a failure message
 // and (req,res,next) will be executed after successful login
+// create JWT token as well
 router.post('/login',passport.authenticate('local'),(req,res,next)=>{
+  // create JWT token after succefull authentication
+  var token = authenticate.getToken({_id: req.user._id});
   res.statusCode=200;
   res.setHeader('Content-Type','application/json');
-  res.json({success: true,status: "You are successfully logged in"});
+  res.json({success: true,
+    status: "You are successfully logged in",
+    // send the JWT token
+    token: token
+  });
 });
 
 router.get('/logout',(req,res,next)=>{
