@@ -34,7 +34,60 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+// using signed cookie
+app.use(cookieParser('12345-67890-0987-54321'));
+
+// Authorization Phase
+function auth(req,res,next){
+  console.log(req.signedCookies);
+  if(!req.signedCookies.user){
+    var authHeader = req.headers.authorization;
+
+    if(!authHeader){
+      var err = new Error("You are not logged in!");
+      res.setHeader('WWW-Authenticate','Basic');
+      err.status=401;
+      next(err);
+      return;
+    }
+    // spliting the authheader using Buffer
+    // authHeader = Basic UserName:Password
+    // therefore [1]
+    var auth = new Buffer.from(authHeader.split(' ')[1],'base64').toString().split(':');
+    var username = auth[0];
+    var password = auth[1];
+
+    if(username==='admin' && password==='password'){
+      // set up the cookie on the client side
+      res.cookie('user','admin',{signed: true});
+      // move to the next step/middleware
+      next();
+    }
+    else{
+      var err = new Error("Incorrect username passord");
+      res.setHeader('WWW-Authenticate','Basic');
+      err.status=401;
+      // call the errpr handler
+      return next(err);
+    }
+  }
+  else{
+    if(req.signedCookies.user == 'admin'){
+      next();
+    }
+    else{
+      var err = new Error("You are not authenticated!");
+      res.setHeader('WWW-Authenticate','Basic');
+      err.status=401;
+      // call the errpr handler
+      return next(err);
+    }
+  }
+}
+
+app.use(auth);
+
+// serving public data from our server
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
