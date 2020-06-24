@@ -6,20 +6,18 @@ var logger = require('morgan');
 var session = require('express-session');
 var FileStore = require('session-file-store')(session);
 
+// Get all the routers modeules
+// They will handle the request for different routes/URLs
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var dishRouter = require('./routes/dishRouter');
 var promoRouter = require('./routes/promoRouter');
 var leaderRouter = require('./routes/leaderRouter');
 
-
-const Dishes = require('./model/dishes');
-const Promotions = require('./model/promotions');
-const Leaders = require('./model/leaders');
+// connect to the database server
 const mongoose = require('mongoose');
 url = "mongodb://localhost:27017/conFusion";
 const connect = mongoose.connect(url);
-
 connect.then((db)=>{
   console.log("Connnected to server!");
 },
@@ -27,6 +25,8 @@ connect.then((db)=>{
   console.log(err);
 });
 
+// get Express framework to easify routing!
+// and using 3rd party framework
 var app = express();
 
 // view engine setup
