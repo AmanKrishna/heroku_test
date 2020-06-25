@@ -5,9 +5,14 @@ var router = express.Router();
 var passport = require('passport');
 var authenticate = require('../authenticate')
 
+// calling cors
+const cors = require("./cors");
+
 /* GET users listing. */
 router.route('/')
-.get(authenticate.verifyUser,authenticate.verifyAdmin, (req, res, next) =>{
+// if the client (browser) sends preflight request with options
+.options(cors.corsWithOptions,(req,res)=>res.sendStatus=200)
+.get(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin, (req, res, next) =>{
   User.find({})
   .then((users)=>{
     res.statusCode=200;
@@ -17,7 +22,7 @@ router.route('/')
   .catch((err)=>next(err));
 });
 
-router.post('/signup',function(req,res,next){
+router.post('/signup',cors.corsWithOptions,function(req,res,next){
   // check if username already exist
   User.register(new User({username: req.body.username}),
     req.body.password, (err,user)=>{
@@ -58,7 +63,7 @@ router.post('/signup',function(req,res,next){
 // will automatically send back a failure message
 // and (req,res,next) will be executed after successful login
 // create JWT token as well
-router.post('/login',passport.authenticate('local'),(req,res,next)=>{
+router.post('/login',cors.corsWithOptions,passport.authenticate('local'),(req,res,next)=>{
   // create JWT token after succefull authentication
   var token = authenticate.getToken({_id: req.user._id});
   res.statusCode=200;
@@ -70,7 +75,7 @@ router.post('/login',passport.authenticate('local'),(req,res,next)=>{
   });
 });
 
-router.get('/logout',(req,res,next)=>{
+router.get('/logout',cors.corsWithOptions,(req,res,next)=>{
   if(req.session){
     // deleting the session from server side
     req.session.destroy();

@@ -4,6 +4,9 @@ const authenticate = require('../authenticate');
 // file upload middleware
 const multer = require('multer');
 
+// calling cors
+const cors = require("./cors");
+
 // settting up Multer
 const storage = multer.diskStorage({
     // file = info about file
@@ -36,11 +39,13 @@ const uploadRouter = express.Router();
 uploadRouter.use(bodyParser.json());
 
 uploadRouter.route('/')
-.get(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
+// if the client (browser) sends preflight request with options
+.options(cors.corsWithOptions,(req,res)=>res.sendStatus=200)
+.get(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
     res.statusCode=403;
     res.end("GET operation not supported on dishes");
 })
-.post(authenticate.verifyUser,authenticate.verifyAdmin,
+.post(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,
     // imageFile = name of the form field which specifies that file
     // single = upload a single file
     upload.single('imageFile'),(req,res)=>{
@@ -48,11 +53,11 @@ uploadRouter.route('/')
         res.setHeader('Content-Type','application/json');
         res.json(req.file);
 })
-.put(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
+.put(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
     res.statusCode=403;
     res.end("PUT operation not supported on dishes");
 })
-.delete(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
+.delete(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
     res.statusCode=403;
     res.end("DELETE operation not supported on dishes");
 })

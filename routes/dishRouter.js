@@ -7,18 +7,27 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const Dishes = require('../model/dishes');
 const authenticate = require('../authenticate');
+
+// calling cors
+const cors = require("./cors");
+
+
 // dishRuter is now an express router
 const dishRouter = express.Router();
 dishRouter.use(bodyParser.json());
+
+
 // this router will  be mounted on the index.js
 // all the verbs will act at this endpoint '/' in this case
 // I will chain all the verbs
 // i only say slash becuase tthis router is mounted at /dishes
 dishRouter.route('/')
+// if the client (browser) sends preflight request with options
+.options(cors.corsWithOptions,(req,res)=>res.sendStatus=200)
 // if get verb was called at the dishes endpoint
 // then takes two params one to be executed on success and
 // one on failure
-.get((req,res,next)=>{
+.get(cors.cors,(req,res,next)=>{
     Dishes.find({})
     // populate the author field in comment schema inside dish schema
     .populate('comments.author')
@@ -29,7 +38,7 @@ dishRouter.route('/')
     },(err)=>next(err))
     .catch((err)=>next(err));
 })
-.post(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
+.post(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
     // the data to be POSTED is in the body of the request
     Dishes.create(req.body)
     // if the dish is successfully added perform this
@@ -41,11 +50,11 @@ dishRouter.route('/')
     },(err)=>next(err))
     .catch((err)=>next(err));
 })
-.put(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
+.put(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
     res.statusCode=403;
     res.end("Put operation not supported on dishes");
 })
-.delete(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
+.delete(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
     console.log("ASDASDAS")
     Dishes.remove({})
     .then((resp)=>{
@@ -58,7 +67,9 @@ dishRouter.route('/')
 });
 
 dishRouter.route('/:dishId')
-.get((req,res,next)=>{
+// if the client (browser) sends preflight request with options
+.options(cors.corsWithOptions,(req,res)=>res.sendStatus=200)
+.get(cors.cors,(req,res,next)=>{
     Dishes.findById(req.params.dishId)
     // populate the author field in comment schema inside dish schema
     .populate('comments.author')
@@ -69,11 +80,11 @@ dishRouter.route('/:dishId')
     },(err)=>next(err))
     .catch((err)=>next(err));
 })
-.post(authenticate.verifyUser,authenticate.verifyAdmin,(req, res,next) => {
+.post(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req, res,next) => {
     res.statusCode = 403;
     res.end('POST operation not supported on /dishes/'+ req.params.dishId);
 })
-.put(authenticate.verifyUser,authenticate.verifyAdmin,(req, res,next) => {
+.put(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req, res,next) => {
     Dishes.findByIdAndUpdate(req.params.dishId,{
         $set : req.body
     },{new: true})
@@ -84,7 +95,7 @@ dishRouter.route('/:dishId')
     },(err)=>next(err))
     .catch((err)=>next(err));
 })
-.delete(authenticate.verifyUser,authenticate.verifyAdmin,(req, res,next) => {
+.delete(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req, res,next) => {
       Dishes.findByIdAndRemove(req.params.dishId)
       .then((resp)=>{
         console.log("Dish Deleted!");
@@ -98,10 +109,12 @@ dishRouter.route('/:dishId')
 //   Handling the Schema inside a schema, schemaception
 
 dishRouter.route('/:dishId/comments')
+// if the client (browser) sends preflight request with options
+.options(cors.corsWithOptions,(req,res)=>res.sendStatus=200)
 // if get verb was called at the dishes endpoint
 // then takes two params one to be executed on success and
 // one on failure
-.get((req,res,next)=>{
+.get(cors.cors,(req,res,next)=>{
     Dishes.findById(req.params.dishId)
     // populate the author field in comment schema inside dish schema
     // .populate('comments.author')
@@ -121,7 +134,7 @@ dishRouter.route('/:dishId/comments')
     },(err)=>next(err))
     .catch((err)=>next(err));
 })
-.post(authenticate.verifyUser,(req,res,next)=>{
+.post(cors.corsWithOptions,authenticate.verifyUser,(req,res,next)=>{
     // the data to be POSTED is in the body of the request
     Dishes.findById(req.params.dishId)
     // if the dish is successfully added perform this
@@ -157,12 +170,12 @@ dishRouter.route('/:dishId/comments')
 },(err)=>next(err))
     .catch((err)=>next(err));
 })
-.put(authenticate.verifyUser,(req,res,next)=>{
+.put(cors.corsWithOptions,authenticate.verifyUser,(req,res,next)=>{
     res.statusCode=403;
     res.end("Put operation not supported on /dishes/"+
     req.params.dishId+'/comments');
 })
-.delete(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
+.delete(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
 Dishes.findById(req.params.dishId)
     .then((dish)=>{
     if(dish!=null)
@@ -187,7 +200,9 @@ Dishes.findById(req.params.dishId)
 });
 
 dishRouter.route('/:dishId/comments/:commentId')
-.get((req,res,next)=>{
+// if the client (browser) sends preflight request with options
+.options(cors.corsWithOptions,(req,res)=>res.sendStatus=200)
+.get(cors.cors,(req,res,next)=>{
     Dishes.findById(req.params.dishId)
     // populate the author field in comment schema inside dish schema
     .populate('comments.author')
@@ -210,11 +225,11 @@ dishRouter.route('/:dishId/comments/:commentId')
     },(err)=>next(err))
     .catch((err)=>next(err));
 })
-.post(authenticate.verifyUser,(req, res,next) => {
+.post(cors.corsWithOptions,authenticate.verifyUser,(req, res,next) => {
     res.statusCode = 403;
     res.end('POST operation not supported on /dishes/'+ req.params.dishId);
 })
-.put(authenticate.verifyUser,(req, res,next) => {
+.put(cors.corsWithOptions,authenticate.verifyUser,(req, res,next) => {
 Dishes.findById(req.params.dishId)
 .then((dish)=>{
     if (dish != null && dish.comments.id(req.params.commentId) != null) {
@@ -255,7 +270,7 @@ Dishes.findById(req.params.dishId)
 },(err)=>next(err))
     .catch((err)=>next(err));
 })
-.delete(authenticate.verifyUser,(req, res,next) => {
+.delete(cors.corsWithOptions,authenticate.verifyUser,(req, res,next) => {
 Dishes.findById(req.params.dishId)
 .then((dish)=>{
     if (dish != null && dish.comments.id(req.params.commentId) != null) {

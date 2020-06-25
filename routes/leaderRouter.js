@@ -4,6 +4,10 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const Leaders = require('../model/leaders');
 const authenticate = require('../authenticate');
+
+// calling cors
+const cors = require("./cors");
+
 // leadertionRuter is now an express router
 const leaderRouter = express.Router();
 leaderRouter.use(bodyParser.json());
@@ -12,7 +16,9 @@ leaderRouter.use(bodyParser.json());
 // I will chain all the verbs
 // i only say slash becuase tthis router is mounted at /leaders
 leaderRouter.route('/')
-.get((req,res,next)=>{
+// if the client (browser) sends preflight request with options
+.options(cors.corsWithOptions,(req,res)=>res.sendStatus=200)
+.get(cors.cors,(req,res,next)=>{
     Leaders.find({})
     .then((leaders)=>{
         res.statusCode=200;
@@ -21,7 +27,7 @@ leaderRouter.route('/')
     },(err)=>next(err))
     .catch((err)=>next(err));
 })
-.post(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
+.post(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
     Leaders.create(req.body)
     .then((leaders)=>{
         console.log("New Leader has been created!");
@@ -31,11 +37,11 @@ leaderRouter.route('/')
     },(err)=>next(err))
     .catch((err)=>next(err));
 })
-.put(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
+.put(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
     res.statusCode=403;
     res.end("Put operation not supported on leaders");
 })
-.delete(authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
+.delete(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
     Leaders.remove({})
     .then((result)=>{
         console.log("Leaders have been deleted");
@@ -47,7 +53,9 @@ leaderRouter.route('/')
 });
 
 leaderRouter.route('/:leaderId')
-.get((req,res,next)=>{
+// if the client (browser) sends preflight request with options
+.options(cors.corsWithOptions,(req,res)=>res.sendStatus=200)
+.get(cors.cors,(req,res,next)=>{
     Leaders.findById(req.params.leaderId)
     .then((leader)=>{
         if(leader!=null)
@@ -64,11 +72,11 @@ leaderRouter.route('/:leaderId')
     },(err)=>next(err))
     .catch((err)=>next(err));
 })
-.post(authenticate.verifyUser,authenticate.verifyAdmin,(req, res,next) => {
+.post(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req, res,next) => {
     res.statusCode = 403;
     res.end('POST operation not supported on /leaders/'+ req.params.leaderId);
 })
-.put(authenticate.verifyUser,authenticate.verifyAdmin,(req, res,next) => {
+.put(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req, res,next) => {
     Leaders.findById(req.params.leaderId)
     .then((leader)=>{
         if(leader!=null)
@@ -90,7 +98,7 @@ leaderRouter.route('/:leaderId')
     },(err)=>next(err))
     .catch((err)=>next(err));
 })
-.delete(authenticate.verifyUser,authenticate.verifyAdmin,(req, res,next) => {
+.delete(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req, res,next) => {
     Leaders.findByIdAndRemove(req.params.leaderId)
     .then((resp)=>{
       console.log("Leader Deleted!");
