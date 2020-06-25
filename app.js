@@ -1,5 +1,3 @@
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZWY0NGY3ODAwZjI3MjEzNTA0YmI5NjMiLCJpYXQiOjE1OTMwNjk5MzEsImV4cCI6MTU5MzA3MzUzMX0.qINhgTN4D40RAu2yvta7loeVP-TRLcRrx2ofZ8CDMJA
-// 5ef458b28b1a8817287b77f1 
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
@@ -33,6 +31,18 @@ connect.then((db)=>{
 // get Express framework to easify routing!
 // and using 3rd party framework
 var app = express();
+
+// redirect any requrest to secure server
+app.all('*',(req,res,next)=>{
+  // if the requrest is coming to the secure port
+  if(req.secure){
+    return next();
+  }
+  else{
+    console.log(req.hostname+" "+app.get('secPort')+" "+req.url);
+    res.redirect(307,'https://'+req.hostname+':'+app.get('secPort')+req.url);
+  }
+})
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
