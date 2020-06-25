@@ -15,8 +15,10 @@ const commentSchema = new Schema({
         required: true
     },
     author: {
-        type: String,
-        required: true
+        // point to an object in another schema
+        type: mongoose.Schema.Types.ObjectId,
+        // which schema? This schema
+        ref: 'User'
     }
 },{
     timestamps: true

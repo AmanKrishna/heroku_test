@@ -36,7 +36,7 @@ opts.secretOrKey = config.secretKey;
 // my life easier. It takes in the incoming payload from JWT(Header+Payload+Signature)
 // extract user from the payload and calls the callback
 // function
-exports.jwtPassport = passport.use(new JwtStrategy(opts,
+exports.jwtPassport = passport.use('verifyUser',new JwtStrategy(opts,
     (jwt_payload,done)=>{
         console.log("JWT Payload",jwt_payload);
         User.findOne({_id: jwt_payload._id},(err,user)=>{
@@ -57,4 +57,28 @@ exports.jwtPassport = passport.use(new JwtStrategy(opts,
     }));
 // jwt means I will use the JwtStrategy i just specified above
 // session=should sessions be created
-exports.verifyUser = passport.authenticate('jwt',{session: false});
+exports.verifyUser = passport.authenticate('verifyUser',{session: false});
+
+exports.jwtPassport = passport.use('verifyAdmin',new JwtStrategy(opts,
+    (jwt_payload,done)=>{
+        console.log("JWT Payload",jwt_payload);
+        User.findOne({_id: jwt_payload._id},(err,user)=>{
+            if(err){
+                // an error occured
+                var error = new Error("This is a forbidden action!")
+                return done(error,false);
+            }
+            else if(user.admin){
+                // return the found user
+                return done(null,user);
+            }
+            else{
+                // couldnt find the user
+                // can also register user here
+                return done(null,false);
+            }
+        })
+    }));
+// jwt means I will use the JwtStrategy i just specified above
+// session=should sessions be created
+exports.verifyAdmin = passport.authenticate('verifyAdmin',{session: false});
