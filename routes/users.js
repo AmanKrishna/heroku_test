@@ -89,4 +89,26 @@ router.get('/logout',cors.corsWithOptions,(req,res,next)=>{
   }
 })
 
+// here the user allows my website to access the fb access token.
+// I take that token alongwith clientId and Secret using the passport.authenticate
+// to verify my website with FB authentication server. The FB resource server then
+// sends the resouces to the browser. The browsers forwards the resources
+// to the server using req.
+// If passport.authenticate('facebook-token') is successful then the req message
+// will already contain the userid of the user logging/signing up through fb
+router.get('/facebook/token',passport.authenticate('facebook-token'),(req,res)=>{
+  if(req.user){
+    // create the JWT token
+    var token = authenticate.getToken({_id: req.user._id});
+    res.statusCode=200;
+    res.setHeader('Content-Type','application/json');
+    res.json({
+      success: true,
+      status: "You are successfully logged in",
+      // send the JWT token
+      token: token
+    });
+  }
+});
+
 module.exports = router;

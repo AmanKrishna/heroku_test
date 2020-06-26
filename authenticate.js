@@ -4,6 +4,7 @@ var User = require("./model/user");
 var JwtStrategy = require('passport-jwt').Strategy;
 var ExtractJwt = require('passport-jwt').ExtractJwt;
 var jwt = require('jsonwebtoken');
+var FacebookTokenStrategy = require('passport-facebook-token');
 
 var config = require('./config');
 
@@ -82,3 +83,45 @@ exports.jwtPassport = passport.use('verifyAdmin',new JwtStrategy(opts,
 // jwt means I will use the JwtStrategy i just specified above
 // session=should sessions be created
 exports.verifyAdmin = passport.authenticate('verifyAdmin',{session: false});
+
+// Simpler way to implement verifyAdmin
+// exports.verifyAdmin = (req,res,next)=>{
+//     if(req.user.admin)
+//         next();
+//     else{
+//         var err = new Error("You are not an Admin");
+//         err.status = 403;
+//         return next(err);
+//     }
+// }
+
+// FacebookTokenStrategy takes 2 parameter
+// first is the clientId and clientSecret and the other is
+// a callback function which takes in accesstoken etc etc
+exports.facebookPassport = passport.use(new FacebookTokenStrategy({
+    clientID: config.facebook.clientId,
+    clientSecret: config.facebook.clientSecret
+},(accessToken,refreshToken,profile,done)=>{
+    // search if the facebookId is present in the db
+    User.findOne({facebookId: profile.id},(err,user)=>{
+        // error happened while seaching for user
+        if(err){
+            return done(err,false);
+        }
+        if(!err && user!==null){
+            return done(null,user);
+        }
+        else{
+            user = new User({username:profile.displayName});
+            user.facebookId = profile.id;
+            user.firstname = profile.name.givenName;
+            user.lastname = profile.name.familyName;
+            user.save((err,user)=>{
+                if(err)
+                    return done(err,false);
+                else
+                    return done(null,user);
+            })
+        }
+    });
+}));
