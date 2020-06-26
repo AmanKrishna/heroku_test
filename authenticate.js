@@ -21,7 +21,7 @@ passport.deserializeUser(User.deserializeUser());
 // create the JWT token
 exports.getToken = function(user){
     return jwt.sign(user,config.secretKey,
-        {expiresIn: 3600});
+        {expiresIn: 3600000});
 };
 
 var opts = {};

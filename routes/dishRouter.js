@@ -30,7 +30,7 @@ dishRouter.route('/')
 .get(cors.cors,(req,res,next)=>{
     Dishes.find({})
     // populate the author field in comment schema inside dish schema
-    .populate('comments.author')
+    // .populate('comments.author')
     .then((dishes)=>{
         res.statusCode=200;
         res.setHeader('Content-type','application/json');
@@ -117,7 +117,7 @@ dishRouter.route('/:dishId/comments')
 .get(cors.cors,(req,res,next)=>{
     Dishes.findById(req.params.dishId)
     // populate the author field in comment schema inside dish schema
-    // .populate('comments.author')
+    .populate('comments.author')
     .then((dish)=>{
         if(dish!=null)
         {
