@@ -28,7 +28,7 @@ dishRouter.route('/')
 // then takes two params one to be executed on success and
 // one on failure
 .get(cors.cors,(req,res,next)=>{
-    Dishes.find({})
+    Dishes.find(req.query)
     // populate the author field in comment schema inside dish schema
     // .populate('comments.author')
     .then((dishes)=>{

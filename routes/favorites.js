@@ -46,8 +46,8 @@ favRouter.route('/')
             fav.save()
             .then((fav)=>{
                 Favorites.findById(fav._id)
-                // .populate("user")
-                // .populate("dishes.favDish")
+                .populate("user")
+                .populate("dishes.favDish")
                 .then((fav)=>{
                     res.statusCode=200;
                     res.setHeader('Content-type','application/json');
@@ -70,11 +70,8 @@ favRouter.route('/')
                     fav.save()
                     .then((fav)=>{
                         Favorites.findById(fav._id)
-                        // I have pushed the reference into the comment schema
-                        // time to populate it
-                        // .populate('user','dishes.dish')
-                        // .populate("user")
-                        // .populate("dishes.favDish")
+                        .populate("user")
+                        .populate("dishes.favDish")
                         .then((fav)=>{
                             res.statusCode=200;
                             res.setHeader('Content-type','application/json');
@@ -111,6 +108,34 @@ favRouter.route('/')
 
 favRouter.route('/:favDishId')
 .options(cors.corsWithOptions,(req,res)=>res.sendStatus=200)
+.get(cors.cors, authenticate.verifyUser, (req,res,next) => {
+    Favorites.findOne({user: req.user._id})
+    .then((favorites) => {
+        if (!favorites) {
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            return res.json({"exists": false, "favorites": favorites});
+        }
+        else {
+            const favDishSelect = favorites.dishes.find((fav)=>{
+                // console.log(fav.favDish+"\n"+req.params.favDishId);
+                return String(fav.favDish)===String(req.params.favDishId);
+            });
+            if (!favDishSelect) {
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'application/json');
+                return res.json({"exists": false, "favorites": favorites});
+            }
+            else {
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'application/json');
+                return res.json({"exists": true, "favorites": favorites});
+            }
+        }
+
+    }, (err) => next(err))
+    .catch((err) => next(err))
+})
 .post(cors.corsWithOptions,authenticate.verifyUser,(req,res,next)=>{
     Favorites.findOne({user:req.user._id})
     .then((fav)=>{
@@ -138,7 +163,7 @@ favRouter.route('/:favDishId')
                     .populate("user")
                     .populate("dishes.favDish")
                     .then((fav)=>{
-                        console.log("In the else part of the code!!!!!")
+                        // console.log("In the else part of the code!!!!!")
                         res.statusCode=200;
                         res.setHeader('Content-type','application/json');
                         res.json(fav);

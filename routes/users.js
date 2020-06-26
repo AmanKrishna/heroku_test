@@ -9,6 +9,8 @@ var authenticate = require('../authenticate')
 const cors = require("./cors");
 
 /* GET users listing. */
+// in case of Preflight
+router.options('*',cors.corsWithOptions,(req,res)=>{res.status=200;})
 router.route('/')
 // if the client (browser) sends preflight request with options
 .options(cors.corsWithOptions,(req,res)=>res.sendStatus=200)
@@ -63,16 +65,54 @@ router.post('/signup',cors.corsWithOptions,function(req,res,next){
 // will automatically send back a failure message
 // and (req,res,next) will be executed after successful login
 // create JWT token as well
-router.post('/login',cors.corsWithOptions,passport.authenticate('local'),(req,res,next)=>{
-  // create JWT token after succefull authentication
-  var token = authenticate.getToken({_id: req.user._id});
-  res.statusCode=200;
-  res.setHeader('Content-Type','application/json');
-  res.json({success: true,
-    status: "You are successfully logged in",
-    // send the JWT token
-    token: token
-  });
+router.post('/login',cors.corsWithOptions,(req,res,next)=>{
+  // err: Genuine error
+  // info: If user doesnot exist or wrong pass then extra info
+  // that makes more sense than "unauthorized"
+  // and yes this is the syntax
+  passport.authenticate('local',(err,user,info)=>{
+    if(err)
+      return next(err);
+    
+    // info will carry more info
+    if(!user){
+      res.statusCode=401;
+      res.setHeader('Content-Type','application/json');
+      res.json({
+        success: false,
+        status: "Login Unsuccessful",
+        // send the JWT token
+        err: info
+      });
+    }
+    // in case of successful user password combination
+    req.login(user,(err)=>{
+      if(err){
+        res.statusCode=401;
+        res.setHeader('Content-Type','application/json');
+        res.json({
+          success: false,
+          status: "Login Unsuccessful",
+          // send the JWT token
+          err: "Couldnot Login User!"
+        });
+      }
+
+       // create JWT token after succefull authentication
+      var token = authenticate.getToken({_id: req.user._id});
+      res.statusCode=200;
+      res.setHeader('Content-Type','application/json');
+      res.json({
+        success: true,
+        status: "Login Successful!",
+        // send the JWT token
+        token: token
+      });
+    });
+  })(req,res,next);
+
+ 
+  
 });
 
 router.get('/logout',cors.corsWithOptions,(req,res,next)=>{
@@ -109,6 +149,27 @@ router.get('/facebook/token',passport.authenticate('facebook-token'),(req,res)=>
       token: token
     });
   }
+});
+
+// Check if the JWT is still valid (due to expiration)
+router.get('/checkJWTtoken', cors.corsWithOptions, (req, res) => {
+  passport.authenticate('jwt', {session: false}, (err, user, info) => {
+    if (err)
+      return next(err);
+    // JWT token has expired!
+    if (!user) {
+      res.statusCode = 401;
+      res.setHeader('Content-Type', 'application/json');
+      return res.json({status: 'JWT invalid!', success: false, err: info});
+    }
+    // valid jwt token
+    else {
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      return res.json({status: 'JWT valid!', success: true, user: user});
+
+    }
+  }) (req, res);
 });
 
 module.exports = router;

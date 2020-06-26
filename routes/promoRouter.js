@@ -19,7 +19,7 @@ promoRouter.route('/')
 // if the client (browser) sends preflight request with options
 .options(cors.corsWithOptions,(req,res)=>res.sendStatus=200)
 .get(cors.cors,(req,res,next)=>{
-    Promotions.find({})
+    Promotions.find(req.query)
     .then((promos)=>{
         res.statusCode=200;
         res.setHeader('Content-Type','application/json');
