@@ -5,7 +5,8 @@ const app = express();
 const whitelist = [
     "http://localhost:3000",
     "https://localhost:3443",
-    "http://shad3-GE63-Raider-RGB-8RF:3001"
+    "http://shad3-GE63-Raider-RGB-8RF:3001",
+    "http://datastack.ml"
 ];
 
 var cosrOptionsDelegate = (req,callback) =>{
